@@ -10,6 +10,7 @@
 
       <v-divider></v-divider>
 
+      <!-- Navigation Menu -->
       <v-list density="compact" nav>
         <v-list-item
           v-for="item in navItems"
@@ -131,6 +132,14 @@
 export default {
   data: () => ({
     theme: 'light',
+    currentTitle: 'Dashboard',
+    navItems: [
+      { title: 'Dashboard', route: '/dashboard', icon: 'mdi-view-dashboard' },
+      { title: 'Sales', route: '/sales', icon: 'mdi-cash-register' },
+      { title: 'Inventory', route: '/inventory', icon: 'mdi-sack' },
+      { title: 'Reports', route: '/reports', icon: 'mdi-chart-line' },
+      { title: 'Settings', route: '/settings', icon: 'mdi-cog' }
+    ],
     stats: [
       { title: 'Today\'s Sales', value: '₱3,845', icon: 'mdi-cash', color: 'success' },
       { title: 'Seed Inventory', value: '158 kg', icon: 'mdi-sack', color: 'primary' },
@@ -142,6 +151,16 @@ export default {
       { name: 'Coin Mechanism', value: 72, color: 'warning' },
       { name: 'Network', value: 98, color: 'success' }
     ],
+    transactionHeaders: [
+      { text: 'Date', value: 'date' },
+      { text: 'Amount', value: 'amount' },
+      { text: 'Status', value: 'status' }
+    ],
+    transactions: [
+      { date: '2025-04-18', amount: '₱500', status: 'Completed' },
+      { date: '2025-04-17', amount: '₱300', status: 'Pending' },
+      { date: '2025-04-16', amount: '₱200', status: 'Failed' }
+    ]
   }),
   methods: {
     getStatusColor(status) {
@@ -155,26 +174,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.v-card.glass {
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.v-avatar, .v-btn, .v-card {
-  transition: all 0.3s ease;
-}
-
-.v-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
-}
-
-.v-theme--dark .v-card.glass {
-  background: rgba(30, 30, 30, 0.8) !important;
-  border-color: rgba(255, 255, 255, 0.05);
-}
-</style>
