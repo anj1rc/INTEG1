@@ -1,226 +1,130 @@
 <template>
-  <div>
-    <!-- Overview Cards -->
-    <v-row class="mb-6">
-      <v-col cols="12" sm="6" md="3" v-for="stat in stats" :key="stat.title">
-        <v-card :color="stat.color" dark>
-          <v-card-text class="d-flex align-center">
-            <v-avatar size="56" :color="stat.avatarColor" class="mr-4">
-              <v-icon large>{{ stat.icon }}</v-icon>
-            </v-avatar>
-            <div>
-              <div class="text-caption">{{ stat.title }}</div>
-              <div class="text-h4">{{ stat.value }}</div>
-              <div class="text-caption">{{ stat.subtext }}</div>
-            </div>
-          </v-card-text>
-        </v-card>
+  <v-container fluid class="pa-4">
+    <!-- Page Title -->
+    <v-row>
+      <v-col cols="12">
+        <h1 class="text-h5 mb-4">Seed Dispensing Machine Status</h1>
+        <p class="text-caption">Showing current seed quantities (Max 30 seeds per machine)</p>
       </v-col>
     </v-row>
 
-    <!-- Main Content Row -->
-    <v-row>
-      <!-- Seed Sampling Activity -->
-      <v-col cols="12" md="8">
-        <v-card title="Recent Seed Samples" border rounded="lg">
-          <v-card-text>
-            <v-data-table
-              :headers="sampleHeaders"
-              :items="recentSamples"
-              :items-per-page="5"
-              class="elevation-1"
-            >
-              <template v-slot:item.quality="{ item }">
-                <v-chip :color="getQualityColor(item.quality)" small>
-                  {{ item.quality }}
-                </v-chip>
-              </template>
-              <template v-slot:item.actions="{ item }">
-                <v-btn icon small @click="viewSample(item)">
-                  <v-icon small>mdi-eye</v-icon>
-                </v-btn>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- System Status -->
-      <v-col cols="12" md="4">
-        <v-card title="System Status" border rounded="lg">
-          <v-card-text>
-            <div v-for="status in systemStatus" :key="status.name" class="mb-4">
-              <div class="d-flex justify-space-between mb-1">
-                <span>{{ status.name }}</span>
-                <span class="font-weight-bold">{{ status.value }}{{ status.unit }}</span>
+    <!-- Seed Machine Cards - Compact 3x3 Grid -->
+    <v-row dense>
+      <v-col 
+        cols="12" 
+        sm="6" 
+        md="4"
+        v-for="crop in crops" 
+        :key="crop.name"
+      >
+        <v-card border flat class="pa-2" height="100%">
+          <v-card-text class="text-center pa-2">
+            <v-avatar size="48" :color="crop.color" class="mb-2">
+              <v-icon dark>{{ crop.icon }}</v-icon>
+            </v-avatar>
+            <div class="text-subtitle-1 mb-1">{{ crop.name }}</div>
+            <v-divider class="my-1"></v-divider>
+            
+            <!-- Compact Seed Quantity Progress -->
+            <div class="mt-2">
+              <div class="d-flex justify-space-between text-caption mb-1">
+                <span>Seeds:</span>
+                <span>{{ crop.remaining }}/30</span>
               </div>
               <v-progress-linear
-                :value="status.value"
-                :color="status.color"
+                :model-value="(crop.remaining / 30) * 100"
+                :color="getQuantityColor(crop.remaining)"
                 height="10"
                 rounded
               ></v-progress-linear>
             </div>
 
-            <v-divider class="my-4"></v-divider>
-
-            <div class="text-center">
-              <v-btn color="primary" @click="refreshStatus">
-                <v-icon left>mdi-refresh</v-icon>
-                Refresh Status
-              </v-btn>
-            </div>
+            <!-- Compact Status Indicators -->
+            <v-row class="mt-2" dense>
+              <v-col cols="6" class="pa-0">
+                <v-chip 
+                  :color="getStatusColor(crop.status)" 
+                  size="small"
+                  label
+                >
+                  {{ crop.status }}
+                </v-chip>
+              </v-col>
+              <v-col cols="6" class="text-right pa-0">
+                <v-icon 
+                  small
+                  :color="crop.needsRefill ? 'red' : 'green'"
+                >
+                  {{ crop.needsRefill ? 'mdi-alert' : 'mdi-check-circle' }}
+                </v-icon>
+              </v-col>
+            </v-row>
           </v-card-text>
+          
+          <v-card-actions class="justify-center pa-1">
+            <v-btn 
+              color="primary" 
+              variant="text" 
+              size="x-small"
+              :disabled="!crop.needsRefill"
+              class="text-caption"
+            >
+              Refill
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- Second Row - Charts -->
-    <v-row class="mt-4">
-      <!-- Seed Quality Distribution -->
-      <v-col cols="12" md="6">
-        <v-card title="Seed Quality Distribution" border rounded="lg">
-          <v-card-text>
-            <div class="d-flex align-center mb-4" v-for="(quality, index) in qualityDistribution" :key="index">
-              <span class="mr-4" style="width: 100px">{{ quality.name }}</span>
-              <v-progress-linear
-                :value="quality.percentage"
-                :color="getQualityColor(quality.name)"
-                height="20"
-                rounded
-              >
-                <strong>{{ quality.percentage }}%</strong>
-              </v-progress-linear>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Recent Activity -->
-      <v-col cols="12" md="6">
-        <v-card title="Recent Activity" border rounded="lg">
-          <v-card-text>
-            <v-timeline dense>
-              <v-timeline-item
-                v-for="(activity, index) in recentActivities"
-                :key="index"
-                small
-                :color="activity.color"
-              >
-                <div class="d-flex justify-space-between">
-                  <span>{{ activity.description }}</span>
-                  <span class="text-caption">{{ activity.time }}</span>
-                </div>
-              </v-timeline-item>
-            </v-timeline>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </div>
+  </v-container>
 </template>
 
 <script>
 export default {
-  name: 'DashboardView',
   data: () => ({
-    stats: [
-      {
-        title: 'Total Samples',
-        value: '142',
-        subtext: '+12% this month',
-        icon: 'mdi-seed',
-        color: 'indigo-darken-2',
-        avatarColor: 'indigo'
-      },
-      {
-        title: 'Avg. Germination',
-        value: '92%',
-        subtext: 'Excellent quality',
-        icon: 'mdi-sprout',
-        color: 'green-darken-2',
-        avatarColor: 'green'
-      },
-      {
-        title: 'Pending Tests',
-        value: '8',
-        subtext: '2 urgent',
-        icon: 'mdi-clock',
-        color: 'orange-darken-2',
-        avatarColor: 'orange'
-      },
-      {
-        title: 'Machines Online',
-        value: '3/4',
-        subtext: '1 in maintenance',
-        icon: 'mdi-robot',
-        color: 'blue-darken-2',
-        avatarColor: 'blue'
-      }
-    ],
-    sampleHeaders: [
-      { text: 'Sample ID', value: 'id' },
-      { text: 'Seed Type', value: 'type' },
-      { text: 'Variety', value: 'variety' },
-      { text: 'Date', value: 'date' },
-      { text: 'Quality', value: 'quality' },
-      { text: 'Actions', value: 'actions', sortable: false }
-    ],
-    recentSamples: [
-      { id: 'SS-2023-045', type: 'Tomato', variety: 'Cherry', date: '2023-06-15', quality: 'Excellent' },
-      { id: 'SS-2023-044', type: 'Corn', variety: 'Sweet', date: '2023-06-14', quality: 'Good' },
-      { id: 'SS-2023-043', type: 'Eggplant', variety: 'Black Beauty', date: '2023-06-14', quality: 'Excellent' },
-      { id: 'SS-2023-042', type: 'Pepper', variety: 'Bell', date: '2023-06-13', quality: 'Fair' },
-      { id: 'SS-2023-041', type: 'Bean', variety: 'Green', date: '2023-06-12', quality: 'Good' }
-    ],
-    systemStatus: [
-      { name: 'Storage Capacity', value: 75, unit: '%', color: 'blue' },
-      { name: 'Dispenser Accuracy', value: 92, unit: '%', color: 'green' },
-      { name: 'Network Uptime', value: 99, unit: '%', color: 'indigo' },
-      { name: 'Coin Mechanism', value: 85, unit: '%', color: 'orange' }
-    ],
-    qualityDistribution: [
-      { name: 'Excellent', percentage: 65 },
-      { name: 'Good', percentage: 25 },
-      { name: 'Fair', percentage: 8 },
-      { name: 'Poor', percentage: 2 }
-    ],
-    recentActivities: [
-      { description: 'New tomato seed sample added', time: '2 hours ago', color: 'green' },
-      { description: 'Corn seed analysis completed', time: '4 hours ago', color: 'blue' },
-      { description: 'System maintenance performed', time: '1 day ago', color: 'orange' },
-      { description: 'New batch of eggplant seeds received', time: '1 day ago', color: 'indigo' }
+    crops: [
+      // First Row
+      { name: 'Eggplant', remaining: 5, status: 'Low', needsRefill: true, color: 'purple', icon: 'mdi-food-variant' },
+      { name: 'Cucumber', remaining: 28, status: 'Good', needsRefill: false, color: 'green', icon: 'mdi-cucumber' },
+      { name: 'Red Pepper', remaining: 15, status: 'Medium', needsRefill: false, color: 'red', icon: 'mdi-pepper' },
+      // Second Row
+      { name: 'Carrot', remaining: 2, status: 'Critical', needsRefill: true, color: 'orange', icon: 'mdi-carrot' },
+      { name: 'Brussel Sprouts', remaining: 30, status: 'Full', needsRefill: false, color: 'teal', icon: 'mdi-sprout' },
+      { name: 'Tomato', remaining: 10, status: 'Medium', needsRefill: false, color: 'red-darken-2', icon: 'mdi-food-variant' },
+      // Third Row
+      { name: 'Asparagus', remaining: 0, status: 'Empty', needsRefill: true, color: 'light-green', icon: 'mdi-grass' },
+      { name: 'Pumpkin', remaining: 22, status: 'Good', needsRefill: false, color: 'deep-orange', icon: 'mdi-pumpkin' },
+      { name: 'Celery', remaining: 7, status: 'Low', needsRefill: true, color: 'green-lighten-1', icon: 'mdi-leaf' }
     ]
   }),
   methods: {
-    getQualityColor(quality) {
+    getQuantityColor(remaining) {
+      if (remaining === 0) return 'red'
+      if (remaining <= 5) return 'orange'
+      if (remaining <= 15) return 'yellow'
+      return 'green'
+    },
+    getStatusColor(status) {
       const colors = {
-        'Excellent': 'success',
-        'Good': 'primary',
-        'Fair': 'warning',
-        'Poor': 'error'
-      };
-      return colors[quality] || 'info';
-    },
-    viewSample(item) {
-      console.log('Viewing sample:', item.id);
-      // Implement view functionality
-    },
-    refreshStatus() {
-      // Implement refresh functionality
-      console.log('Refreshing system status');
+        'Empty': 'red',
+        'Critical': 'red',
+        'Low': 'orange',
+        'Medium': 'yellow',
+        'Good': 'light-green',
+        'Full': 'green'
+      }
+      return colors[status] || 'grey'
     }
   }
-};
+}
 </script>
 
 <style scoped>
-/* Custom styles */
 .v-card {
-  transition: transform 0.3s;
+  transition: all 0.2s ease;
+  border-radius: 8px !important;
 }
 .v-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 </style>
-
