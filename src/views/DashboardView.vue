@@ -75,7 +75,30 @@
                     <v-chip :color="getStatusColor(crop.status)" small label>
                       {{ crop.status }}
                     </v-chip>
-       
+                         </v-col>
+                  <v-col cols="6" class="text-right pa-0">
+                    <v-icon small :color="crop.needsRefill ? 'red' : 'green'">
+                      {{ crop.needsRefill ? 'mdi-alert' : 'mdi-check-circle' }}
+                    </v-icon>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+              <v-card-actions class="justify-center pa-1 mt-auto">
+                <v-btn
+                  color="primary"
+                  variant="text"
+                  size="x-small"
+                  :disabled="!crop.needsRefill"
+                  class="text-caption"
+                  @click="refillItem(crop)"
+                >
+                  Refill
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+
               </v-card-text>
             </v-card>
           </v-col>
