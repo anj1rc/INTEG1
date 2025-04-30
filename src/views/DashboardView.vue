@@ -99,6 +99,83 @@
           </v-col>
         </v-row>
 
+        <!-- Sales Statistics Table -->
+        <v-row class="mb-6">
+          <v-col cols="12">
+            <v-card>
+              <v-card-title class="text-h6">Sales Overview</v-card-title>
+              <v-card-text class="pa-0">
+                <v-data-table
+                  :headers="salesHeaders"
+                  :items="seedSalesSummary"
+                  :items-per-page="10"
+                  class="elevation-0"
+                >
+                  <template v-slot:item.avgPrice="{ item }">
+                    ₱{{ item.avgPrice.toFixed(2) }}
+                  </template>
+                  <template v-slot:item.monthlyTrend="{ item }">
+                    <v-chip :color="getTrendColor(item.monthlyTrend)" small>
+                      {{ item.monthlyTrend >= 0 ? '+' : '' }}{{ item.monthlyTrend }}%
+                    </v-chip>
+                  </template>
+                </v-data-table>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- System Status Card -->
+        <v-row>
+          <v-col cols="12">
+            <v-card>
+              <v-card-title class="text-h6">Vending Machine System Status</v-card-title>
+              <v-card-text>
+                <v-row dense>
+                  <v-col cols="12" sm="6" md="3">
+                    <div class="pa-4 text-center d-flex flex-column align-center">
+                      <v-icon size="64" :color="machineStatus.power ? 'green' : 'red'">
+                        {{ machineStatus.power ? 'mdi-power' : 'mdi-power-off' }}
+                      </v-icon>
+                      <div class="mt-2 font-weight-bold">
+                        {{ machineStatus.power ? 'Power: On' : 'Power: Off' }}
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6" md="3">
+                    <div class="pa-4 text-center d-flex flex-column align-center">
+                      <v-icon size="64" :color="machineStatus.connected ? 'green' : 'orange'">
+                        {{ machineStatus.connected ? 'mdi-wifi' : 'mdi-wifi-off' }}
+                      </v-icon>
+                      <div class="mt-2 font-weight-bold">
+                        {{ machineStatus.connected ? 'Connected' : 'Disconnected' }}
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6" md="3">
+                    <div class="pa-4">
+                      <div class="text-caption">Last Heartbeat</div>
+                      <div class="font-weight-bold mt-1">{{ lastHeartbeat }}</div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6" md="3">
+                    <div class="pa-4">
+                      <div class="text-caption">Active Errors</div>
+                      <div class="d-flex align-center justify-center mt-1">
+                        <v-chip :color="machineStatus.errors > 0 ? 'red' : 'green'" label small dark>
+                          {{ machineStatus.errors }}
+                        </v-chip>
+                        &nbsp;
+                        <span v-if="machineStatus.errors === 0" class="text-success">No errors</span>
+                        <span v-else class="text-red">Error{{ machineStatus.errors > 1 ? 's' : '' }}</span>
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+
               </v-card-text>
             </v-card>
           </v-col>
