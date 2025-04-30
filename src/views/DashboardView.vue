@@ -175,7 +175,18 @@
                     </div>
                   </v-col>
                 </v-row>
-
+     <!-- Error List if any -->
+                <div v-if="machineStatus.errors > 0" class="mt-4">
+                  <h4 class="text-subtitle-1 mb-2">Recent Errors</h4>
+                  <v-list density="compact" lines="one" border rounded>
+                    <v-list-item
+                      v-for="(error, idx) in recentErrors"
+                      :key="idx"
+                      :title="error.message"
+                      :subtitle="error.timestamp"
+                    ></v-list-item>
+                  </v-list>
+                </div>
               </v-card-text>
             </v-card>
           </v-col>
